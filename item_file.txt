@@ -1,0 +1,8 @@
+﻿
+                <tr>
+                    <td data-value="{name}">
+                        <a class="icon file" draggable="true" href="/{path}">{name}</a>
+                    </td>
+                    <td class="detailsColumn" data-value="{size}">{size_str}</td>
+                    <td class="detailsColumn" data-value="{created}">{created_str}</td>
+                </tr>

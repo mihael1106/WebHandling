@@ -1,0 +1,8 @@
+﻿
+                <tr>
+                    <td data-value="{name}/">
+                        <a class="icon dir" href="/{path}">{name}/</a>
+                    </td>
+                    <td class="detailsColumn" data-value="0"></td>
+                    <td class="detailsColumn" data-value="{created}">{created_str}</td>
+                </tr>

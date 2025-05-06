@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHandling", "WebHandling.csproj", "{482E1F4A-53B2-4886-8B31-58961ADF7566}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebHandling-DrawingAddon", "..\WebHandling-DrawingAddon\WebHandling-DrawingAddon.csproj", "{E6EFE832-3529-400A-A817-CC809AADDECE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{482E1F4A-53B2-4886-8B31-58961ADF7566}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{482E1F4A-53B2-4886-8B31-58961ADF7566}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{482E1F4A-53B2-4886-8B31-58961ADF7566}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{482E1F4A-53B2-4886-8B31-58961ADF7566}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6EFE832-3529-400A-A817-CC809AADDECE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6EFE832-3529-400A-A817-CC809AADDECE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6EFE832-3529-400A-A817-CC809AADDECE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6EFE832-3529-400A-A817-CC809AADDECE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A030C949-45B1-4AFE-8F2D-2E4ED2125BA5}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html dir="ltr" lang="en">
+    <head>
+        <title>{err}</title>
+        <meta charset="utf-8">
+        <meta name="color-scheme" content="light dark">
+        <meta name="google" value="notranslate">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            .code-box {
+                background-color: #8d8d8d;
+                border: 1px solid #808080;
+                padding: 4px;
+                font-family: monospace;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                border-radius: 4px;
+            }
+            html {
+                background-color: #444;
+                color-scheme: light dark;
+                font-family: Arial;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="text-align: center;">
+            <h1>{err}</h1>
+            {extra_data}
+        </div>
+        {debug_data}
+    </body>
+</html>

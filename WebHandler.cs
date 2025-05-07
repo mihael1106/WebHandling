@@ -20,43 +20,6 @@ namespace Miki1106.WebHandling
         private readonly Dictionary<string, Func<HttpListenerContext, Stream>> streamListeners;
         private readonly Dictionary<string, Func<HttpListenerContext, byte[]>> byteListeners;
         private readonly string prefix;
-        private static readonly Dictionary<string, string> MimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            {".png", "image/png"},
-            {".gif", "image/gif"},
-            {".jpg", "image/jpeg"},
-            {".jpeg", "image/jpeg"},
-            {".ico", "image/x-icon"},
-            {".bmp", "image/bmp"},
-            {".webp", "image/webp"},
-            {".svg", "image/svg+xml"},
-
-            {".mp3", "audio/mpeg"},
-            {".mp4", "video/mp4"},
-            {".avi", "video/x-msvideo"},
-            {".mov", "video/quicktime"},
-
-            {".txt", "text/plain"},
-            {".html", "text/html"},
-            {".htm", "text/html"},
-            {".css", "text/css"},
-
-            {".js", "application/javascript"},
-            {".json", "application/json"},
-            {".xml", "application/xml"},
-
-            {".pdf", "application/pdf"},
-            {".zip", "application/zip"},
-            {".rar", "application/x-rar-compressed"},
-            {".7z", "application/x-7z-compressed"},
-
-            {".doc", "application/msword"},
-            {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
-            {".xls", "application/vnd.ms-excel"},
-            {".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-            {".ppt", "application/vnd.ms-powerpoint"},
-            {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},
-        };
 
         public WebHandler(string prefix) : this(prefix, 80, false)
         {
@@ -168,12 +131,12 @@ namespace Miki1106.WebHandling
                     HttpListenerContext context = staticListener.GetContext();
                     new Thread(() =>
                     {
-                        string requestPath = context.Request.Url.AbsolutePath;
+                        string requestPath = Uri.UnescapeDataString(context.Request.Url.AbsolutePath);
                         if (requestPath[0] == '/')
                             requestPath = requestPath.Substring(1);
+
                         if (debug)
-                            Console.WriteLine($"Got request for static path \"{requestPath}\"");
-                        requestPath = Uri.UnescapeDataString(requestPath);
+                            Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Got request for static path \"{requestPath}\"");
                         string fullPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), requestPath));
 
                         if (!fullPath.StartsWith(Path.Combine(Directory.GetCurrentDirectory(), "static"), StringComparison.OrdinalIgnoreCase))
@@ -187,7 +150,10 @@ namespace Miki1106.WebHandling
                         {
                             if (File.Exists(requestPath))
                             {
-                                context.Response.ContentType = MimeTypes.TryGetValue(Path.GetExtension(requestPath).ToLower(), out string mime) ? mime : "application/octet-stream";
+                                string mimeType = MimeTypes.GetMimeType(Path.GetExtension(requestPath));
+                                if (debug)
+                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found mime type: {mimeType}");
+                                context.Response.ContentType = mimeType;
                                 response = File.OpenRead(requestPath);
                             }
                             else if (Directory.Exists(requestPath))
@@ -196,7 +162,7 @@ namespace Miki1106.WebHandling
                             }
                             else
                             {
-                                Console.WriteLine($"[{DateTime.Now}] [{context.Request.RemoteEndPoint.Address}] Path \"{requestPath}\" does not exist.");
+                                Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{requestPath}\" does not exist.");
                                 context.Response.StatusCode = 404;
                                 response = new MemoryStream(Encoding.UTF8.GetBytes(new ErrorPageBuilder().ErrorNumber(404).ExtraData($"<br>Path \"{requestPath}\" does not exist").Build()));
                             }

@@ -44,7 +44,7 @@ namespace Miki1106.WebHandling.Core
         {
             directories = Directory.GetDirectories(Path.GetFullPath(path));
             files = Directory.GetFiles(Path.GetFullPath(path));
-            showParentDirectory = path != "static/";
+            showParentDirectory = path != "static";
             return this;
         }
 

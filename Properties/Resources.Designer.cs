@@ -62,24 +62,20 @@ namespace Miki1106.WebHandling.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
-        ///&lt;html&gt;
+        ///&lt;html dir=&quot;ltr&quot; lang=&quot;en&quot;&gt;
         ///    &lt;head&gt;
-        ///        &lt;title&gt;ERROR {err_num}&lt;/title&gt;
+        ///        &lt;title&gt;{err}&lt;/title&gt;
+        ///        &lt;meta charset=&quot;utf-8&quot;&gt;
+        ///        &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
+        ///        &lt;meta name=&quot;google&quot; value=&quot;notranslate&quot;&gt;
+        ///        &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
         ///        &lt;style&gt;
         ///            .code-box {
-        ///                background-color: #f5f5f5;
-        ///                border: 1px solid #ccc;
+        ///                background-color: #8d8d8d;
+        ///                border: 1px solid #808080;
         ///                padding: 4px;
         ///                font-family: monospace;
-        ///                white-space: pre-wrap;
-        ///                word-wrap: break-word;
-        ///                border-radius: 4px;
-        ///            }
-        ///            html {
-        ///                font-family: cursive;
-        ///            }
-        ///        &lt;/style&gt;
-        ///    &lt;/head&gt;        /// [rest of string was truncated]&quot;;.
+        ///     [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string error_base {
             get {
@@ -120,24 +116,36 @@ namespace Miki1106.WebHandling.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to # Credit to &lt;https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types&gt;
+        ///# This file maps Internet media types to unique file extension(s).
+        ///# Although created for httpd, this file is used by many software systems
+        ///# and has been placed in the public domain for unlimited redistribution.
+        ///#
+        ///# The table below contains both registered and (common) unregistered types.
+        ///# A type that has no unique extension can be ignored -- they are listed
+        ///# here to guide configurations toward known types and to [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string mime_types {
+            get {
+                return ResourceManager.GetString("mime_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;html dir=&quot;ltr&quot; lang=&quot;en&quot;&gt;
         ///    &lt;head&gt;
+        ///        &lt;title id=&quot;title&quot;&gt;Index of {local_path}&lt;/title&gt;
         ///        &lt;meta charset=&quot;utf-8&quot;&gt;
         ///        &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;&gt;
         ///        &lt;meta name=&quot;google&quot; value=&quot;notranslate&quot;&gt;
+        ///        &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
         ///        &lt;style&gt;
         ///            
         ///            h1 {
         ///                border-bottom: 1px solid #c0c0c0;
         ///                margin-bottom: 10px;
         ///                padding-bottom: 10px;
-        ///                white-space: nowrap;
-        ///            }
-        ///            
-        ///            table {
-        ///                border-collapse: collapse;
-        ///            }
-        ///          [rest of string was truncated]&quot;;.
+        ///                whi [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string static_base {
             get {

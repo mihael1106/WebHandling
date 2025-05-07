@@ -41,8 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core/ErrorPageBuilder.cs" />
-    <Compile Include="Core/FileListBuilder.cs" />
+    <Compile Include="Core\ErrorPageBuilder.cs" />
+    <Compile Include="Core\FileListBuilder.cs" />
+    <Compile Include="Core\MimeTypes.cs" />
     <Compile Include="Form\Mappers\CheckMapping.cs" />
     <Compile Include="Form\Mappers\FileMapping.cs" />
     <Compile Include="Form\Mappers\FilesMapping.cs" />
@@ -76,6 +77,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="mime.types.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

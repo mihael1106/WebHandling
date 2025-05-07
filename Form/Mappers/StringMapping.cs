@@ -8,7 +8,6 @@ namespace Miki1106.WebHandling.Form
     {
         public string Parse(ParserInfo info)
         {
-            Console.WriteLine(WebHandler.GetStackTrace());
             if (info.fields.TryGetValue(info.fieldName, out FormField formInfo))
             {
                 byte[] buff = new byte[formInfo.DataEnd[0] - formInfo.DataStart[0]];

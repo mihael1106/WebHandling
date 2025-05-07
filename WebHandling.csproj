@@ -41,7 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ErrorPageBuilder.cs" />
+    <Compile Include="Core/ErrorPageBuilder.cs" />
+    <Compile Include="Core/FileListBuilder.cs" />
     <Compile Include="Form\Mappers\CheckMapping.cs" />
     <Compile Include="Form\Mappers\FileMapping.cs" />
     <Compile Include="Form\Mappers\FilesMapping.cs" />

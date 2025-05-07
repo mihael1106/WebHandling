@@ -7,10 +7,10 @@ namespace Miki1106.WebHandling
 {
     public class ErrorPageBuilder
     {
-        private static string template = Resources.error_base;
+        private static readonly string template = Resources.error_base;
 
         private string error = "An unknown error has occured";
-        private int errorNum = 200;
+        private int errorNum = 500;
         private string extraData = "";
         private string debugData = "";
 
@@ -29,6 +29,14 @@ namespace Miki1106.WebHandling
         public ErrorPageBuilder ExtraData(string extraData)
         {
             this.extraData = extraData;
+            return this;
+        }
+
+        public ErrorPageBuilder DefaultDebugData(Exception ex = null)
+        {
+            string exception = $"<br>Exception occured: {WebUtility.HtmlEncode(ex?.ToString())}<br>";
+            debugData = $"{(ex != null ? exception : "")}<br>Time: {DateTime.Now:dd.MM.yyyy. HH:mm:ss}<br><h2>Call stack:</h2> <pre><code><div class=\"code-box\">{WebUtility.HtmlEncode(WebHandler.GetStackTrace())}</div></code></pre>";
+
             return this;
         }
 

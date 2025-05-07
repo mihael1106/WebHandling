@@ -1,4 +1,4 @@
-﻿using Miki1106.WebHandling.Properties;
+﻿using Miki1106.WebHandling.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +20,43 @@ namespace Miki1106.WebHandling
         private readonly Dictionary<string, Func<HttpListenerContext, Stream>> streamListeners;
         private readonly Dictionary<string, Func<HttpListenerContext, byte[]>> byteListeners;
         private readonly string prefix;
+        private static readonly Dictionary<string, string> MimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            {".png", "image/png"},
+            {".gif", "image/gif"},
+            {".jpg", "image/jpeg"},
+            {".jpeg", "image/jpeg"},
+            {".ico", "image/x-icon"},
+            {".bmp", "image/bmp"},
+            {".webp", "image/webp"},
+            {".svg", "image/svg+xml"},
+
+            {".mp3", "audio/mpeg"},
+            {".mp4", "video/mp4"},
+            {".avi", "video/x-msvideo"},
+            {".mov", "video/quicktime"},
+
+            {".txt", "text/plain"},
+            {".html", "text/html"},
+            {".htm", "text/html"},
+            {".css", "text/css"},
+
+            {".js", "application/javascript"},
+            {".json", "application/json"},
+            {".xml", "application/xml"},
+
+            {".pdf", "application/pdf"},
+            {".zip", "application/zip"},
+            {".rar", "application/x-rar-compressed"},
+            {".7z", "application/x-7z-compressed"},
+
+            {".doc", "application/msword"},
+            {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+            {".xls", "application/vnd.ms-excel"},
+            {".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+            {".ppt", "application/vnd.ms-powerpoint"},
+            {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},
+        };
 
         public WebHandler(string prefix) : this(prefix, 80, false)
         {
@@ -134,14 +171,14 @@ namespace Miki1106.WebHandling
                         string requestPath = context.Request.Url.AbsolutePath;
                         if (requestPath[0] == '/')
                             requestPath = requestPath.Substring(1);
-                        if(debug)
+                        if (debug)
                             Console.WriteLine($"Got request for static path \"{requestPath}\"");
                         requestPath = Uri.UnescapeDataString(requestPath);
                         string fullPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), requestPath));
 
                         if (!fullPath.StartsWith(Path.Combine(Directory.GetCurrentDirectory(), "static"), StringComparison.OrdinalIgnoreCase))
                         {
-                            context.Response.StatusCode = 403;
+                            new ErrorPageBuilder().ErrorNumber(403).ExtraData("<br>Invalid request").Send(context);
                             return;
                         }
 
@@ -150,58 +187,12 @@ namespace Miki1106.WebHandling
                         {
                             if (File.Exists(requestPath))
                             {
-                                switch (Path.GetExtension(requestPath).ToLower())
-                                {
-                                    case ".png":
-                                        context.Response.AddHeader("Content-Type", "image/png");
-                                        break;
-                                    case ".gif":
-                                        context.Response.AddHeader("Content-Type", "image/gif");
-                                        break;
-                                    case ".jpg":
-                                        context.Response.AddHeader("Content-Type", "image/jpeg");
-                                        break;
-                                    case ".jepg":
-                                        context.Response.AddHeader("Content-Type", "image/jpeg");
-                                        break;
-                                    case ".ico":
-                                        context.Response.AddHeader("Content-Type", "image/x-icon");
-                                        break;
-                                    case ".mp4":
-                                        context.Response.AddHeader("Content-Type", "video/mp4");
-                                        break;
-                                    case ".mov":
-                                        context.Response.AddHeader("Content-Type", "video/mp4");
-                                        break;
-                                    default:
-                                        Console.WriteLine("Couldnt find extension for type " + Path.GetExtension(requestPath).ToLower());
-                                        break;
-                                }
-
+                                context.Response.ContentType = MimeTypes.TryGetValue(Path.GetExtension(requestPath).ToLower(), out string mime) ? mime : "application/octet-stream";
                                 response = File.OpenRead(requestPath);
                             }
                             else if (Directory.Exists(requestPath))
                             {
-                                if (requestPath[requestPath.Length - 1] == '/')
-                                    requestPath = requestPath.Remove(requestPath.Length - 1);
-                                string html = Resources.static_base.Replace("{local_path}", requestPath);
-
-                                requestPath += "/";
-
-                                string list = "";
-                                foreach (string str in Directory.GetDirectories(requestPath))
-                                {
-                                    DirectoryInfo info = new DirectoryInfo(str);
-                                    list += GenDir(requestPath, info);
-                                }
-                                foreach (string str in Directory.GetFiles(requestPath))
-                                {
-                                    FileInfo fileInfo = new FileInfo(str);
-                                    list += GenFile(requestPath, fileInfo);
-                                }
-                                html = html.Replace("{list}", list).Replace("{display}", requestPath != "static/" ? "block" : "none");
-
-                                response = new MemoryStream(Encoding.UTF8.GetBytes(html));
+                                response = new MemoryStream(new FileListBuilder(requestPath).SetDefault().Build());
                             }
                             else
                             {
@@ -217,8 +208,7 @@ namespace Miki1106.WebHandling
                         }
                         catch (Exception ex)
                         {
-                            string debugData = $"<br>Exception occured: {WebUtility.HtmlEncode(ex.ToString())}<br><br>Time: {DateTime.Now:dd.MM.yyyy. HH:mm:ss}<br><h2>Call stack:</h2> <pre><code><div class=\"code-box\">{WebUtility.HtmlEncode(GetStackTrace())}</div></code></pre>";
-                            new ErrorPageBuilder().ErrorNumber(500).DebugData(debugData).Send(context);
+                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
                             response?.Close();
                             if (debug)
                                 Console.WriteLine(ex.ToString());
@@ -242,37 +232,6 @@ namespace Miki1106.WebHandling
                         Console.WriteLine(e.Message);
                 }
             }
-        }
-
-        private static string GenDir(string requestPath, DirectoryInfo info)
-        {
-            string name = info.Name;
-            long created = ((DateTimeOffset)info.LastWriteTime).ToUnixTimeSeconds();
-            return Resources.item_folder.Replace("{path}", requestPath + name)
-                .Replace("{name}", name)
-                .Replace("{created}", created.ToString())
-                .Replace("{created_str}", info.LastWriteTime.ToString("dd/MM/yy, H:mm:ss"));
-        }
-        private static string GenFile(string requestPath, FileInfo info)
-        {
-            string name = info.Name;
-            long created = ((DateTimeOffset)info.LastWriteTime).ToUnixTimeSeconds();
-            string item = Resources.item_file.Replace("{path}", requestPath + name)
-                .Replace("{name}", name)
-                .Replace("{created}", created.ToString())
-                .Replace("{created_str}", info.LastWriteTime.ToString("dd/MM/yy, H:mm:ss"))
-                .Replace("{size}", info.Length.ToString());
-
-            string[] sizes = { "B", "kB", "MB", "GB", "TB" };
-            double len = info.Length;
-            int order = 0;
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len /= 1024;
-            }
-            string result = string.Format("{0:0.##} {1}", len, sizes[order]);
-            return item.Replace("{size_str}", result);
         }
 
         private void Web()
@@ -311,6 +270,7 @@ namespace Miki1106.WebHandling
                             {
                                 if (debug)
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
+                                context.Response.StatusCode = 404;
                                 new ErrorPageBuilder().ErrorNumber(404).ExtraData($"<br>Path \"{path}\" does not exist.").Send(context);
                             }
                         }
@@ -319,8 +279,7 @@ namespace Miki1106.WebHandling
                             stream?.Close();
                             if (debug)
                                 Console.WriteLine(ex.ToString());
-                            string debugData = $"<br>Exception occured: {WebUtility.HtmlEncode(ex.ToString())}<br><br>Time: {DateTime.Now:dd.MM.yyyy. HH:mm:ss}<br><h2>Call stack:</h2> <pre><code><div class=\"code-box\">{WebUtility.HtmlEncode(GetStackTrace())}</div></code></pre>";
-                            new ErrorPageBuilder().ErrorNumber(500).DebugData(debugData).Send(context);
+                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
                         }
                     })
                     {

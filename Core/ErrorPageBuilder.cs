@@ -53,10 +53,20 @@ namespace Miki1106.WebHandling
 
         public void Send(HttpListenerContext context)
         {
-            context.Response.StatusCode = errorNum;
-            byte[] response = Encoding.UTF8.GetBytes(Build());
-            context.Response.OutputStream.Write(response, 0, response.Length);
-            context.Response.Close();
+            try
+            {
+                context.Response.StatusCode = errorNum;
+                byte[] response = Encoding.UTF8.GetBytes(Build());
+                context.Response.OutputStream.Write(response, 0, response.Length);
+                context.Response.Close();
+            }
+            catch (Exception ex)
+            {
+                if (WebHandler.debug)
+                    Console.WriteLine(ex.ToString());
+                else
+                    Console.WriteLine("This shouldnt happen: " + ex.Message);
+            }
         }
     }
 }

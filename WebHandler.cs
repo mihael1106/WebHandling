@@ -154,7 +154,31 @@ namespace Miki1106.WebHandling
                                 if (debug)
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found mime type: {mimeType}");
                                 context.Response.ContentType = mimeType;
+
                                 response = File.OpenRead(requestPath);
+
+                                string rangeHeader = context.Request.Headers["Range"];
+                                if (rangeHeader != null)
+                                {
+                                    long fileLength = response.Length;
+
+                                    string[] range = rangeHeader.Substring(6).Split(new char[1] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                                    long start = long.Parse(range[0]);
+                                    if (range.Length == 2)
+                                        Console.WriteLine(range[1] + rangeHeader);
+                                    long end = range.Length == 2 ? long.Parse(range[1]) : fileLength - 1;
+
+                                    long partialLength = end - start + 1;
+                                    response.Seek(start, SeekOrigin.Begin);
+                                    context.Response.StatusCode = 206;
+                                    context.Response.AddHeader("Content-Range", $"bytes {start}-{end}/{fileLength}");
+                                    context.Response.ContentLength64 = partialLength;
+
+                                    CopyStream(response, context.Response.OutputStream, partialLength);
+                                    response.Close();
+                                    context.Response.Close();
+                                    return;
+                                }
                             }
                             else if (Directory.Exists(requestPath))
                             {
@@ -172,10 +196,18 @@ namespace Miki1106.WebHandling
                                 response.CopyTo(context.Response.OutputStream);
                             }
                         }
+                        catch (HttpListenerException ex) when (ex.ErrorCode == 64)
+                        {
+                        }
+                        catch (IOException ex)
+                        {
+                            if (debug)
+                                Console.WriteLine($"IO error during file transfer: {ex.Message}");
+                        }
                         catch (Exception ex)
                         {
                             new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
-                            response?.Close();
+
                             if (debug)
                                 Console.WriteLine(ex.ToString());
                             else
@@ -197,6 +229,17 @@ namespace Miki1106.WebHandling
                     else
                         Console.WriteLine(e.Message);
                 }
+            }
+        }
+
+        private static void CopyStream(Stream source, Stream target, long bytesToCopy)
+        {
+            byte[] buffer = new byte[64 * 1024];
+            int bytesRead;
+            while (bytesToCopy > 0 && (bytesRead = source.Read(buffer, 0, (int)Math.Min(buffer.Length, bytesToCopy))) > 0)
+            {
+                target.Write(buffer, 0, bytesRead);
+                bytesToCopy -= bytesRead;
             }
         }
 

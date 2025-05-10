@@ -10,14 +10,9 @@ namespace Miki1106.WebHandling.Form
         Dictionary<string, FormField> startingPointsData = new Dictionary<string, FormField>();
         private readonly byte[] formData;
         private byte[] formHeader;
-        public FormParser(Stream stream)
+        public FormParser(byte[] data)
         {
-            using (Stream requestStream = stream)
-            using (MemoryStream ms = new MemoryStream())
-            {
-                requestStream.CopyTo(ms);
-                formData = ms.ToArray();
-            }
+            formData = data;
             FindHeader();
 
             for (int i = 0; i < formData.Length - formHeader.Length - 2; i++)

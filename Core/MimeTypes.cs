@@ -39,7 +39,13 @@ namespace Miki1106.WebHandling.Core
                     }
                 }
             }
-            return _mimeTypes.TryGetValue(fileExtension.ToLower().TrimStart('.'), out string mimeType) ? mimeType : "application/octet-stream";
+            if (!_mimeTypes.TryGetValue(fileExtension.ToLower().TrimStart('.'), out string mimeType))
+            {
+                mimeType = "application/octet-stream";
+                if (WebHandler.debug)
+                    Console.WriteLine($"Couldnt find mime type for \"{fileExtension}\". Defaulting to application/octet-stream");
+            }
+            return mimeType;
         }
     }
 }

@@ -17,6 +17,10 @@ namespace Miki1106.WebHandling.Form
 
             for (int i = 0; i < formData.Length - formHeader.Length - 2; i++)
             {
+                if (!(formData[i] == '\r' && formData[i + 1] == '\n'))
+                    continue;
+                else
+                    i += 2;
                 if (Compare(formData, i, formHeader))
                 {
                     if (Compare(formData, i + formHeader.Length, Encoding.UTF8.GetBytes("--")))

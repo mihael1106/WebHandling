@@ -235,9 +235,13 @@ namespace Miki1106.WebHandling
         private static void CopyStream(Stream source, Stream target, long bytesToCopy)
         {
             byte[] buffer = new byte[64 * 1024];
-            int bytesRead;
-            while (bytesToCopy > 0 && (bytesRead = source.Read(buffer, 0, (int)Math.Min(buffer.Length, bytesToCopy))) > 0)
+            while (bytesToCopy > 0)
             {
+                int toRead = (int)Math.Min(buffer.Length, bytesToCopy);
+                int bytesRead = source.Read(buffer, 0, toRead);
+                if (bytesRead <= 0)
+                    break;
+
                 target.Write(buffer, 0, bytesRead);
                 bytesToCopy -= bytesRead;
             }
@@ -262,6 +266,8 @@ namespace Miki1106.WebHandling
                             }
                             else if (streamListeners.ContainsKey(path))
                             {
+                                if (debug)
+                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found stream for \"{path}\"");
                                 stream = streamListeners[path]?.Invoke(context);
                                 stream?.CopyTo(context.Response.OutputStream, 65536);
                                 stream.Flush();
@@ -271,6 +277,8 @@ namespace Miki1106.WebHandling
                             }
                             else if (byteListeners.ContainsKey(path))
                             {
+                                if (debug)
+                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found byte array for \"{path}\"");
                                 byte[] response = byteListeners[path]?.Invoke(context);
                                 context.Response.OutputStream.Write(response, 0, response.Length);
                                 context.Response.Close();

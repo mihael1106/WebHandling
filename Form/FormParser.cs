@@ -17,14 +17,20 @@ namespace Miki1106.WebHandling.Form
 
             for (int i = 0; i < formData.Length - formHeader.Length - 2; i++)
             {
-                if (!(formData[i] == '\r' && formData[i + 1] == '\n'))
-                    continue;
-                else
-                    i += 2;
+                if (i != 0)
+                {
+                    if (!(formData[i] == '\r' && formData[i + 1] == '\n'))
+                        continue;
+                    else
+                        i += 2;
+                }
+
                 if (Compare(formData, i, formHeader))
                 {
                     if (Compare(formData, i + formHeader.Length, Encoding.UTF8.GetBytes("--")))
                     {
+                        if (WebHandler.debug)
+                            Console.WriteLine("Got to end");
                         break;
                     }
 
@@ -36,22 +42,27 @@ namespace Miki1106.WebHandling.Form
                         string[] split = property.Split(new char[] { ':' }, 2);
                         fields.Add(split[0], split[1].Substring(1));
                     }
-                    string fieldName = "";
+                    string fieldName = null;
                     if (fields.TryGetValue("Content-Disposition", out string fieldData))
                     {
                         fieldName = GetField("name", fieldData);
                     }
-                    if (fieldName == "")
+                    if (fieldName == null)
                     {
                         Console.WriteLine("Couldnt find field name, SKIPPING");
                         continue;
                     }
+                    if (WebHandler.debug)
+                        Console.WriteLine($"Found field: \"{fieldName}\"");
                     int dataEnd = FindEnd(properties.Item1);
                     if (dataEnd < 0)
                     {
                         Console.WriteLine("Couldnt find end");
                         continue;
                     }
+
+                    i = dataEnd - 2;
+
                     if (startingPointsData.ContainsKey(fieldName))
                     {
                         startingPointsData[fieldName].DataStart.Add(properties.Item1);
@@ -125,16 +136,14 @@ namespace Miki1106.WebHandling.Form
 
         private static bool Compare(byte[] bytes, int start, byte[] compare)
         {
-            bool match = true;
             for (int i = 0; i < compare.Length; i++)
             {
                 if (bytes[start + i] != compare[i])
                 {
-                    match = false;
-                    break;
+                    return false;
                 }
             }
-            return match;
+            return true;
         }
 
         private void FindHeader()
@@ -155,6 +164,14 @@ namespace Miki1106.WebHandling.Form
         {
             for (int i = dataStart; i < formData.Length - formHeader.Length; i++)
             {
+                if (i != 0)
+                {
+                    if (!(formData[i] == '\r' && formData[i + 1] == '\n'))
+                        continue;
+
+                    i += 2;
+                }
+
                 if (Compare(formData, i, formHeader))
                 {
                     return i - 2;

@@ -18,10 +18,7 @@ namespace Miki1106.WebHandling.Form
                 stream.Read(buff, 0, buff.Length);
                 return Encoding.UTF8.GetString(buff);
             }
-            else
-            {
-                return default;
-            }
+            return default;
         }
     }
 }

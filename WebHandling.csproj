@@ -58,11 +58,15 @@
     <Compile Include="Form\Mappers\StringMapping.cs" />
     <Compile Include="Form\Mappers\TimeMapping.cs" />
     <Compile Include="Form\Mappers\WeekMapping.cs" />
+    <Compile Include="ListenerResponse.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Response\ByteResponse.cs" />
+    <Compile Include="Response\FileResponse.cs" />
+    <Compile Include="Response\StreamResponse.cs" />
     <Compile Include="WebHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -17,8 +17,7 @@ namespace Miki1106.WebHandling
         private static HttpListener staticListener;
         private static Thread staticThread;
 
-        private readonly Dictionary<string, Func<HttpListenerContext, Stream>> streamListeners;
-        private readonly Dictionary<string, Func<HttpListenerContext, byte[]>> byteListeners;
+        private readonly Dictionary<string, Func<HttpListenerContext, ListenerResponse>> listeners;
         private readonly string prefix;
 
         public WebHandler(string prefix) : this(prefix, 80, false)
@@ -42,8 +41,7 @@ namespace Miki1106.WebHandling
 
             string access = isPrivate ? "localhost" : "*";
 
-            streamListeners = new Dictionary<string, Func<HttpListenerContext, Stream>>();
-            byteListeners = new Dictionary<string, Func<HttpListenerContext, byte[]>>();
+            listeners = new Dictionary<string, Func<HttpListenerContext, ListenerResponse>>();
 
             webListener = new HttpListener();
             if (staticListener == null)
@@ -103,23 +101,16 @@ namespace Miki1106.WebHandling
             return final;
         }
 
-        public void AddListener(string path, Func<HttpListenerContext, Stream> listener)
+        public void AddListener(string path, Func<HttpListenerContext, ListenerResponse> listener)
         {
-            streamListeners.Add(GetPath(path), listener);
-        }
-
-        public void AddListener(string path, Func<HttpListenerContext, byte[]> listener)
-        {
-            byteListeners.Add(GetPath(path), listener);
+            listeners.Add(GetPath(path), listener);
         }
 
 
         public void RemoveListener(string path)
         {
-            if (streamListeners.ContainsKey(prefix + path))
-                streamListeners.Remove(prefix + path);
-            if (byteListeners.ContainsKey(prefix + path))
-                byteListeners.Remove(prefix + path);
+            if (listeners.ContainsKey(prefix + path))
+                listeners.Remove(prefix + path);
         }
 
         static private void StaticWeb()
@@ -234,7 +225,7 @@ namespace Miki1106.WebHandling
 
         private static void CopyStream(Stream source, Stream target, long bytesToCopy)
         {
-            byte[] buffer = new byte[64 * 1024];
+            byte[] buffer = new byte[65536];
             while (bytesToCopy > 0)
             {
                 int toRead = (int)Math.Min(buffer.Length, bytesToCopy);
@@ -257,30 +248,26 @@ namespace Miki1106.WebHandling
                     new Thread(() =>
                     {
                         string path = context.Request.Url.AbsolutePath;
-                        Stream stream = null;
                         try
                         {
                             if (path == "/throw" && debug)
                             {
                                 throw new Exception("A debug exception has been thrown");
                             }
-                            else if (streamListeners.ContainsKey(path))
+                            else if (listeners.ContainsKey(path))
                             {
                                 if (debug)
-                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found stream for \"{path}\"");
-                                stream = streamListeners[path]?.Invoke(context);
-                                stream?.CopyTo(context.Response.OutputStream, 65536);
-                                stream.Flush();
+                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found listener for \"{path}\"");
+
+                                Stream resultStream = listeners[path]?.Invoke(context).GetResponse(context);
+
+                                using (resultStream)
+                                {
+                                    context.Response.ContentLength64 = resultStream.Length;
+                                    resultStream.CopyTo(context.Response.OutputStream, 65536);
+                                }
+
                                 context.Response.OutputStream.Flush();
-                                stream.Close();
-                                context.Response.Close();
-                            }
-                            else if (byteListeners.ContainsKey(path))
-                            {
-                                if (debug)
-                                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found byte array for \"{path}\"");
-                                byte[] response = byteListeners[path]?.Invoke(context);
-                                context.Response.OutputStream.Write(response, 0, response.Length);
                                 context.Response.Close();
                             }
                             else

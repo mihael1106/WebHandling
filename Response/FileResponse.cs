@@ -40,7 +40,6 @@ namespace Miki1106.WebHandling.Response
             };
             context.Response.ContentType = MimeTypes.GetMimeType(Path.GetExtension(filename));
             context.Response.AddHeader("Content-Disposition", cd.ToString());
-            Console.WriteLine(cd.ToString());
             return stream;
         }
     }

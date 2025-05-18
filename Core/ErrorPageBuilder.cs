@@ -57,6 +57,7 @@ namespace Miki1106.WebHandling
             {
                 context.Response.StatusCode = errorNum;
                 byte[] response = Encoding.UTF8.GetBytes(Build());
+                context.Response.ContentLength64 = response.Length;
                 context.Response.OutputStream.Write(response, 0, response.Length);
                 context.Response.Close();
             }

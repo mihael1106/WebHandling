@@ -34,8 +34,8 @@ namespace Miki1106.WebHandling
 
         public ErrorPageBuilder DefaultDebugData(Exception ex = null)
         {
-            string exception = $"<br>Exception occured: {WebUtility.HtmlEncode(ex?.ToString())}<br>";
-            debugData = $"{(ex != null ? exception : "")}<br>Time: {DateTime.Now:dd.MM.yyyy. HH:mm:ss}<br><h2>Call stack:</h2> <pre><code><div class=\"code-box\">{WebUtility.HtmlEncode(WebHandler.GetStackTrace())}</div></code></pre>";
+            string exception = $"<br>Exception occured: <pre><code><div class=\"code-box\">{WebUtility.HtmlEncode(ex?.ToString())}</div></code></pre><br>";
+            debugData = $"{(ex != null ? exception : "")}<br>Time: {DateTime.Now:dd.MM.yyyy. HH:mm:ss}";
 
             return this;
         }
@@ -58,6 +58,8 @@ namespace Miki1106.WebHandling
                 context.Response.StatusCode = errorNum;
                 byte[] response = Encoding.UTF8.GetBytes(Build());
                 context.Response.ContentLength64 = response.Length;
+                context.Response.ContentType = "text/html";
+                context.Response.Headers.Remove("Content-Range");
                 context.Response.OutputStream.Write(response, 0, response.Length);
                 context.Response.Close();
             }

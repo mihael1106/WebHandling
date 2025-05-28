@@ -707,7 +707,7 @@ text/csv,csv
 text/html,html htm
 text/javascript,js mjs
 text/n3,n3
-text/plain,txt text conf def list log in
+text/plain,txt text conf def list log in ini
 text/prs.lines.tag,dsc
 text/richtext,rtx
 text/sgml,sgml sgm

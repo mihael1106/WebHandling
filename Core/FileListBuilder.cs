@@ -42,8 +42,11 @@ namespace Miki1106.WebHandling.Core
 
         public FileListBuilder SetDefault()
         {
-            directories = Directory.GetDirectories(Path.GetFullPath(path));
-            files = Directory.GetFiles(Path.GetFullPath(path));
+            string noSlash = path.Substring(6);
+            if(noSlash.StartsWith("/"))
+                noSlash = noSlash.Substring(1);
+            directories = Directory.GetDirectories(Path.GetFullPath(Path.Combine(WebHandler.StaticPath, noSlash)));
+            files = Directory.GetFiles(Path.GetFullPath(Path.Combine(WebHandler.StaticPath, noSlash)));
             showParentDirectory = path != "static";
             return this;
         }

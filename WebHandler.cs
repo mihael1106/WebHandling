@@ -14,6 +14,23 @@ namespace Miki1106.WebHandling
         private readonly HttpListener webListener;
         public static bool debug = false;
 
+        private static string _staticPath = "static";
+        public static string StaticPath
+        {
+            get => _staticPath;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value) || value.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+                {
+                    throw new ArgumentException("The path contains invalid characters or is empty.", nameof(value));
+                }
+
+                if (!Directory.Exists(value))
+                    Directory.CreateDirectory(value);
+                _staticPath = value;
+            }
+        }
+
         private static HttpListener staticListener;
         private static Thread staticThread;
 
@@ -35,10 +52,6 @@ namespace Miki1106.WebHandling
 
         public WebHandler(string prefix, ushort port, bool isPrivate)
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "static");
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
             string access = isPrivate ? "localhost" : "*";
 
             listeners = new Dictionary<string, Func<HttpListenerContext, ListenerResponse>>();
@@ -128,9 +141,14 @@ namespace Miki1106.WebHandling
 
                         if (debug)
                             Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Got request for static path \"{requestPath}\"");
-                        string fullPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), requestPath));
 
-                        if (!fullPath.StartsWith(Path.Combine(Directory.GetCurrentDirectory(), "static"), StringComparison.OrdinalIgnoreCase))
+                        string fullPath = requestPath.Substring(6);                      // removes the initial static, for eg. static/some_dir/file.txt to /some_dir/file.tx
+                        if(fullPath.Length >= 1)
+                            if (fullPath[0] == '/')
+                                fullPath = fullPath.Substring(1);                            // removes the / at the begining (if any), for eg. /some_dir/file.txt to some_dir/file.txt
+                        fullPath = Path.GetFullPath(Path.Combine(StaticPath, fullPath)); // puts the static folder and gets the absolute path, eg. some_dir/file.txt to D:/Server/static/some_dir/file.txt
+
+                        if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
                         {
                             new ErrorPageBuilder().ErrorNumber(403).ExtraData("<br>Invalid request").Send(context);
                             return;
@@ -139,14 +157,14 @@ namespace Miki1106.WebHandling
                         Stream response = null;
                         try
                         {
-                            if (File.Exists(requestPath))
+                            if (File.Exists(fullPath))
                             {
-                                string mimeType = MimeTypes.GetMimeType(Path.GetExtension(requestPath));
+                                string mimeType = MimeTypes.GetMimeType(Path.GetExtension(fullPath));
                                 if (debug)
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found mime type: {mimeType}");
                                 context.Response.ContentType = mimeType;
 
-                                response = File.OpenRead(requestPath);
+                                response = File.OpenRead(fullPath);
 
                                 string rangeHeader = context.Request.Headers["Range"];
                                 if (rangeHeader != null)
@@ -171,7 +189,7 @@ namespace Miki1106.WebHandling
                                     return;
                                 }
                             }
-                            else if (Directory.Exists(requestPath))
+                            else if (Directory.Exists(fullPath))
                             {
                                 response = new MemoryStream(new FileListBuilder(requestPath).SetDefault().Build());
                             }
@@ -192,6 +210,7 @@ namespace Miki1106.WebHandling
                         }
                         catch (IOException ex)
                         {
+                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
                             if (debug)
                                 Console.WriteLine($"IO error during file transfer: {ex.Message}");
                         }
@@ -263,6 +282,8 @@ namespace Miki1106.WebHandling
 
                                 using (resultStream)
                                 {
+                                    if (resultStream.CanSeek)
+                                        resultStream.Seek(0, SeekOrigin.Begin);
                                     context.Response.ContentLength64 = resultStream.Length;
                                     resultStream.CopyTo(context.Response.OutputStream, 65536);
                                 }

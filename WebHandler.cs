@@ -145,7 +145,7 @@ namespace Miki1106.WebHandling
                         string fullPath = requestPath.Substring(6);                      // removes the initial static, for eg. static/some_dir/file.txt to /some_dir/file.tx
                         if(fullPath.Length >= 1)
                             if (fullPath[0] == '/')
-                                fullPath = fullPath.Substring(1);                            // removes the / at the begining (if any), for eg. /some_dir/file.txt to some_dir/file.txt
+                                fullPath = fullPath.Substring(1);                        // removes the / at the begining (if any), for eg. /some_dir/file.txt to some_dir/file.txt
                         fullPath = Path.GetFullPath(Path.Combine(StaticPath, fullPath)); // puts the static folder and gets the absolute path, eg. some_dir/file.txt to D:/Server/static/some_dir/file.txt
 
                         if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
@@ -154,9 +154,9 @@ namespace Miki1106.WebHandling
                             return;
                         }
 
-                        Stream response = null;
                         try
                         {
+                            Stream response;
                             if (File.Exists(fullPath))
                             {
                                 string mimeType = MimeTypes.GetMimeType(Path.GetExtension(fullPath));

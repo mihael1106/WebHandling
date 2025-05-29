@@ -154,6 +154,7 @@ namespace Miki1106.WebHandling
                             return;
                         }
 
+                        bool responseStarted = false;
                         try
                         {
                             Stream response;
@@ -183,6 +184,7 @@ namespace Miki1106.WebHandling
                                     context.Response.AddHeader("Content-Range", $"bytes {start}-{end}/{fileLength}");
                                     context.Response.ContentLength64 = partialLength;
 
+                                    responseStarted = true;
                                     CopyStream(response, context.Response.OutputStream, partialLength);
                                     response.Close();
                                     context.Response.Close();
@@ -210,13 +212,20 @@ namespace Miki1106.WebHandling
                         }
                         catch (IOException ex)
                         {
-                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            if (!responseStarted)
+                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            else
+                                context.Response.Abort();
+
                             if (debug)
                                 Console.WriteLine($"IO error during file transfer: {ex.Message}");
                         }
                         catch (Exception ex)
                         {
-                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            if (!responseStarted)
+                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            else
+                                context.Response.Abort();
 
                             if (debug)
                                 Console.WriteLine(ex.ToString());
@@ -267,6 +276,7 @@ namespace Miki1106.WebHandling
                     new Thread(() =>
                     {
                         string path = context.Request.Url.AbsolutePath;
+                        bool responseStarted = false;
                         try
                         {
                             if (path == "/throw" && debug)
@@ -285,6 +295,7 @@ namespace Miki1106.WebHandling
                                     if (resultStream.CanSeek)
                                         resultStream.Seek(0, SeekOrigin.Begin);
                                     context.Response.ContentLength64 = resultStream.Length;
+                                    responseStarted = true;
                                     resultStream.CopyTo(context.Response.OutputStream, 65536);
                                 }
 
@@ -304,7 +315,10 @@ namespace Miki1106.WebHandling
                             if (debug)
                                 Console.WriteLine(ex.ToString());
 
-                            new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            if (!responseStarted)
+                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                            else
+                                context.Response.Abort();
                         }
                     })
                     {

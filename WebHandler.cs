@@ -133,7 +133,7 @@ namespace Miki1106.WebHandling
                 try
                 {
                     HttpListenerContext context = staticListener.GetContext();
-                    new Thread(() =>
+                    new Thread(async () =>
                     {
                         string requestPath = Uri.UnescapeDataString(context.Request.Url.AbsolutePath);
                         if (requestPath[0] == '/')
@@ -204,7 +204,7 @@ namespace Miki1106.WebHandling
                             using (response)
                             {
                                 context.Response.ContentLength64 = response.Length;
-                                response.CopyTo(context.Response.OutputStream);
+                                await response.CopyToAsync(context.Response.OutputStream, 1048576);
                             }
                         }
                         catch (HttpListenerException ex) when (ex.ErrorCode == 64)

@@ -133,7 +133,7 @@ namespace Miki1106.WebHandling
                 try
                 {
                     HttpListenerContext context = staticListener.GetContext();
-                    new Thread(async () =>
+                    new Thread(() =>
                     {
                         string requestPath = Uri.UnescapeDataString(context.Request.Url.AbsolutePath);
                         if (requestPath[0] == '/')
@@ -143,7 +143,7 @@ namespace Miki1106.WebHandling
                             Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Got request for static path \"{requestPath}\"");
 
                         string fullPath = requestPath.Substring(6);                      // removes the initial static, for eg. static/some_dir/file.txt to /some_dir/file.tx
-                        if(fullPath.Length >= 1)
+                        if (fullPath.Length >= 1)
                             if (fullPath[0] == '/')
                                 fullPath = fullPath.Substring(1);                        // removes the / at the begining (if any), for eg. /some_dir/file.txt to some_dir/file.txt
                         fullPath = Path.GetFullPath(Path.Combine(StaticPath, fullPath)); // puts the static folder and gets the absolute path, eg. some_dir/file.txt to D:/Server/static/some_dir/file.txt
@@ -203,8 +203,11 @@ namespace Miki1106.WebHandling
                             }
                             using (response)
                             {
-                                context.Response.ContentLength64 = response.Length;
-                                await response.CopyToAsync(context.Response.OutputStream, 1048576);
+                                if (response.CanSeek)
+                                    response.Seek(0, SeekOrigin.Begin);
+                                context.Response.ContentLength64 = response.Length - response.Position;
+                                responseStarted = true;
+                                CopyStream(response, context.Response.OutputStream, response.Length - response.Position);
                             }
                         }
                         catch (HttpListenerException ex) when (ex.ErrorCode == 64)
@@ -253,7 +256,7 @@ namespace Miki1106.WebHandling
 
         private static void CopyStream(Stream source, Stream target, long bytesToCopy)
         {
-            byte[] buffer = new byte[65536];
+            byte[] buffer = new byte[1048576];
             while (bytesToCopy > 0)
             {
                 int toRead = (int)Math.Min(buffer.Length, bytesToCopy);

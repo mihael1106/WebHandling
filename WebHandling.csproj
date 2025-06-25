@@ -64,9 +64,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Core\RequestInfo.cs" />
     <Compile Include="Response\ByteResponse.cs" />
     <Compile Include="Response\FileResponse.cs" />
     <Compile Include="Response\StreamResponse.cs" />
+    <Compile Include="StaticHandler.cs" />
     <Compile Include="WebHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

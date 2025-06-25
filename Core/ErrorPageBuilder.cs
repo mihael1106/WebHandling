@@ -51,17 +51,19 @@ namespace Miki1106.WebHandling
             return template.Replace("{err}", WebUtility.HtmlEncode(error)).Replace("{extra_data}", extraData).Replace("{debug_data}", WebHandler.debug ? debugData : "");
         }
 
-        public void Send(HttpListenerContext context)
+        public void Send(HttpListenerContext context, ref int statusCode, ref long totalSent)
         {
             try
             {
                 context.Response.StatusCode = errorNum;
+                statusCode = errorNum;
                 byte[] response = Encoding.UTF8.GetBytes(Build());
                 context.Response.ContentLength64 = response.Length;
                 context.Response.ContentType = "text/html";
                 context.Response.Headers.Remove("Content-Range");
                 context.Response.OutputStream.Write(response, 0, response.Length);
-                context.Response.Close();
+                totalSent += response.LongLength;
+                context.Response.OutputStream.Flush();
             }
             catch (Exception ex)
             {
@@ -70,6 +72,13 @@ namespace Miki1106.WebHandling
                 else
                     Console.WriteLine("This shouldnt happen: " + ex.Message);
             }
+        }
+
+        public void Send(HttpListenerContext context)
+        {
+            int temp = 0;
+            long temp2 = 0;
+            Send(context, ref temp, ref temp2);
         }
     }
 }

@@ -2,9 +2,9 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Miki1106.WebHandling.Core.Utils;
 
 namespace Miki1106.WebHandling
 {
@@ -67,7 +67,7 @@ namespace Miki1106.WebHandling
                 try
                 {
                     HttpListenerContext context = await staticListener.GetContextAsync();
-                    _ = Task.Run(() =>
+                    _ = Task.Run(async () =>
                     {
                         long start = DateTime.Now.Ticks;
                         string requestPath = Uri.UnescapeDataString(context.Request.Url.AbsolutePath);
@@ -83,18 +83,18 @@ namespace Miki1106.WebHandling
                                 fullPath = fullPath.Substring(1);                        // removes the / at the begining (if any), for eg. /some_dir/file.txt to some_dir/file.txt
                         fullPath = Path.GetFullPath(Path.Combine(StaticPath, fullPath)); // puts the static folder and gets the absolute path, eg. some_dir/file.txt to D:/Server/static/some_dir/file.txt
 
-                        if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
-                        {
-                            new ErrorPageBuilder().ErrorNumber(403).ExtraData("<br>Invalid request").Send(context);
-                            return;
-                        }
-
                         long totalSent = 0;
                         long totalReceived = context.Request.ContentLength64;
                         int statusCode = 500;
                         string method = context.Request.HttpMethod;
                         IPEndPoint iPEndPoint = context.Request.RemoteEndPoint;
-                        
+                        if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
+                        {
+                            await Send(context, new ErrorPage(403, "<br>Invalid request"), add => totalSent += add, status => statusCode = status, 1048576);
+                            return;
+                        }
+
+
                         bool responseStarted = false;
                         try
                         {
@@ -112,7 +112,7 @@ namespace Miki1106.WebHandling
                                 if (rangeHeader != null)
                                 {
                                     responseStarted = true;
-                                    HandleRange(rangeHeader, response, context, ref totalSent, ref statusCode);
+                                    await HandleRange(rangeHeader, response, context, add => totalSent += add, status => statusCode = status);
                                     return;
                                 }
                             }
@@ -124,8 +124,7 @@ namespace Miki1106.WebHandling
                             {
                                 Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{requestPath}\" does not exist.");
                                 context.Response.StatusCode = 404;
-                                statusCode = 404;
-                                response = new MemoryStream(Encoding.UTF8.GetBytes(new ErrorPageBuilder().ErrorNumber(404).ExtraData($"<br>Path \"{requestPath}\" does not exist").Build()));
+                                response = new ErrorPage(404, $"<br>Path \"{requestPath}\" does not exist").GetResponse();
                             }
                             using (response)
                             {
@@ -134,32 +133,20 @@ namespace Miki1106.WebHandling
                                 context.Response.ContentLength64 = response.Length - response.Position;
                                 responseStarted = true;
                                 statusCode = context.Response.StatusCode;
-                                CopyStream(response, context.Response.OutputStream, response.Length - response.Position, ref totalSent);
+                                await CopyStream(response, context.Response.OutputStream, response.Length - response.Position, add => totalSent += add);
                             }
                         }
                         catch (HttpListenerException ex) when (ex.ErrorCode == 64)
                         {
                         }
-                        catch (IOException ex)
-                        {
-                            if (!responseStarted)
-                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context, ref statusCode, ref totalSent);
-                            else
-                                context.Response.Abort();
-
-                            if (WebHandler.debug)
-                                Console.WriteLine($"IO error during file transfer: {ex.Message}");
-                        }
                         catch (Exception ex)
                         {
                             if (!responseStarted)
-                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context, ref statusCode, ref totalSent);
+                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status, 1048576);
                             else
                                 context.Response.Abort();
 
                             if (WebHandler.debug)
-                                Console.WriteLine(ex.ToString());
-                            else
                                 Console.WriteLine(ex.Message);
                         }
                         finally
@@ -190,44 +177,23 @@ namespace Miki1106.WebHandling
             }
         }
 
-        private static void HandleRange(string rangeHeader, Stream response, HttpListenerContext context, ref long totalSent, ref int statusCode)
+        private static async Task HandleRange(string rangeHeader, Stream response, HttpListenerContext context, Action<long> updateSent, Action<int> updateStatus)
         {
             long fileLength = response.Length;
 
             string[] range = rangeHeader.Substring(6).Split(new char[1] { '-' }, StringSplitOptions.RemoveEmptyEntries);
             long start = long.Parse(range[0]);
-            if (range.Length == 2)
-                Console.WriteLine(range[1] + rangeHeader);
             long end = range.Length == 2 ? long.Parse(range[1]) : fileLength - 1;
 
             long partialLength = end - start + 1;
             response.Seek(start, SeekOrigin.Begin);
             context.Response.StatusCode = 206;
-            statusCode = 206;
+            updateStatus?.Invoke(206);
             context.Response.AddHeader("Content-Range", $"bytes {start}-{end}/{fileLength}");
             context.Response.ContentLength64 = partialLength;
 
-            CopyStream(response, context.Response.OutputStream, partialLength, ref totalSent);
+            await CopyStream(response, context.Response.OutputStream, partialLength, add => updateSent?.Invoke(add));
             response.Close();
-        }
-
-        private static void CopyStream(Stream source, Stream target, long bytesToCopy, ref long totalSent)
-        {
-            byte[] buffer = new byte[1048576];
-            while (bytesToCopy > 0)
-            {
-                int toRead = (int)Math.Min(buffer.Length, bytesToCopy);
-                int bytesRead = source.Read(buffer, 0, toRead);
-                if (bytesRead <= 0)
-                    break;
-                try
-                {
-                    target.Write(buffer, 0, bytesRead);
-                }
-                catch { break; }
-                bytesToCopy -= bytesRead;
-                totalSent += bytesRead;
-            }
         }
     }
 }

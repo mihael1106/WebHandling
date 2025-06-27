@@ -1,10 +1,10 @@
 ﻿using Miki1106.WebHandling.Core;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using static Miki1106.WebHandling.Core.Utils;
 
 namespace Miki1106.WebHandling
 {
@@ -106,7 +106,6 @@ namespace Miki1106.WebHandling
         public void AddListener(string path, Func<HttpListenerContext, ListenerResponse> listener)
         {
             listeners.Add("/" + GetPath($"{prefix}/{GetPath(path)}"), listener);
-            Console.WriteLine($"Added: {"/" + GetPath($"{prefix}/{GetPath(path)}")}");
         }
 
 
@@ -128,10 +127,15 @@ namespace Miki1106.WebHandling
                     _ = Task.Run(async () =>
                     {
                         long start = DateTime.Now.Ticks;
+                        long totalSent = 0;
+                        long totalReceived = context.Request.ContentLength64;
+                        int statusCode = 500;
+                        string method = context.Request.HttpMethod;
+                        IPEndPoint iPEndPoint = context.Request.RemoteEndPoint;
                         bool responseStarted = false;
+                        string path = Uri.UnescapeDataString(context.Request.Url.AbsolutePath);
                         try
                         {
-                            string path = context.Request.Url.AbsolutePath;
                             if (path == "/throw" && debug)
                             {
                                 throw new Exception("A debug exception has been thrown");
@@ -142,30 +146,9 @@ namespace Miki1106.WebHandling
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found listener for \"{path}\"");
 
                                 ListenerResponse listenerResponse = listeners[path]?.Invoke(context);
-                                if (listenerResponse == null)
-                                {
-                                    new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(new NullReferenceException("Something went very wrong. The listener response is null.")).Send(context);
-                                    return;
-                                }
 
-                                Stream resultStream = listenerResponse.GetResponse(context);
-                                if (resultStream == null)
-                                {
-                                    responseStarted = true;
-                                    new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(new NullReferenceException("Something went very wrong. The result stream is null.")).Send(context);
-                                    return;
-                                }
-
-                                using (resultStream)
-                                {
-                                    if (resultStream.CanSeek)
-                                        resultStream.Seek(0, SeekOrigin.Begin);
-                                    context.Response.ContentLength64 = resultStream.Length - resultStream.Position;
-                                    responseStarted = true;
-                                    await resultStream.CopyToAsync(context.Response.OutputStream, 65536);
-                                }
-
-                                context.Response.OutputStream.Flush();
+                                responseStarted = true;
+                                await Send(context, listenerResponse, add => totalSent += add, status => statusCode = status);
                             }
                             else
                             {
@@ -173,7 +156,7 @@ namespace Miki1106.WebHandling
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
 
                                 responseStarted = true;
-                                new ErrorPageBuilder().ErrorNumber(404).ExtraData($"<br>Path \"{path}\" does not exist.").Send(context);
+                                await Send(context, new ErrorPage(404, $"<br>Path \"{path}\" does not exist."), add => totalSent += add, status => statusCode = status);
                             }
                         }
                         catch (Exception ex)
@@ -182,7 +165,7 @@ namespace Miki1106.WebHandling
                                 Console.WriteLine(ex.ToString());
 
                             if (!responseStarted)
-                                new ErrorPageBuilder().ErrorNumber(500).DefaultDebugData(ex).Send(context);
+                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status);
                             else
                                 context.Response.Abort();
                         }
@@ -190,7 +173,7 @@ namespace Miki1106.WebHandling
                         {
                             try
                             {
-                                RequestInfo info = new RequestInfo(context.Response.StatusCode, context.Response.ContentLength64, context.Request.ContentLength64, context.Request.HttpMethod, context.Request.Url.AbsolutePath, context.Request.RemoteEndPoint, DateTime.Now.Ticks - start);
+                                RequestInfo info = new RequestInfo(statusCode, totalSent, totalReceived, method, path, iPEndPoint, DateTime.Now.Ticks - start);
                                 OnRequestFinished?.Invoke(null, info);
                             }
                             catch (Exception ex)

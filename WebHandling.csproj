@@ -44,6 +44,8 @@
     <Compile Include="Core\ErrorPageBuilder.cs" />
     <Compile Include="Core\FileListBuilder.cs" />
     <Compile Include="Core\MimeTypes.cs" />
+    <Compile Include="Core\Utils.cs" />
+    <Compile Include="ErrorPage.cs" />
     <Compile Include="Form\Mappers\CheckMapping.cs" />
     <Compile Include="Form\Mappers\FileMapping.cs" />
     <Compile Include="Form\Mappers\FilesMapping.cs" />

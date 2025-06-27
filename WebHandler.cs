@@ -123,7 +123,7 @@ namespace Miki1106.WebHandling
             {
                 try
                 {
-                    HttpListenerContext context = await webListener.GetContextAsync();
+                    HttpListenerContext context = await webListener.GetContextAsync().ConfigureAwait(false);
                     _ = Task.Run(async () =>
                     {
                         long start = DateTime.Now.Ticks;
@@ -148,7 +148,7 @@ namespace Miki1106.WebHandling
                                 ListenerResponse listenerResponse = listeners[path]?.Invoke(context);
 
                                 responseStarted = true;
-                                await Send(context, listenerResponse, add => totalSent += add, status => statusCode = status);
+                                await Send(context, listenerResponse, add => totalSent += add, status => statusCode = status).ConfigureAwait(false);
                             }
                             else
                             {
@@ -156,7 +156,7 @@ namespace Miki1106.WebHandling
                                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
 
                                 responseStarted = true;
-                                await Send(context, new ErrorPage(404, $"<br>Path \"{path}\" does not exist."), add => totalSent += add, status => statusCode = status);
+                                await Send(context, new ErrorPage(404, $"<br>Path \"{path}\" does not exist."), add => totalSent += add, status => statusCode = status).ConfigureAwait(false);
                             }
                         }
                         catch (Exception ex)
@@ -165,7 +165,7 @@ namespace Miki1106.WebHandling
                                 Console.WriteLine(ex.ToString());
 
                             if (!responseStarted)
-                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status);
+                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status).ConfigureAwait(false);
                             else
                                 context.Response.Abort();
                         }

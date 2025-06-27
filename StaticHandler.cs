@@ -66,7 +66,7 @@ namespace Miki1106.WebHandling
             {
                 try
                 {
-                    HttpListenerContext context = await staticListener.GetContextAsync();
+                    HttpListenerContext context = await staticListener.GetContextAsync().ConfigureAwait(false);
                     _ = Task.Run(async () =>
                     {
                         long start = DateTime.Now.Ticks;
@@ -90,7 +90,7 @@ namespace Miki1106.WebHandling
                         IPEndPoint iPEndPoint = context.Request.RemoteEndPoint;
                         if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
                         {
-                            await Send(context, new ErrorPage(403, "<br>Invalid request"), add => totalSent += add, status => statusCode = status, 1048576);
+                            await Send(context, new ErrorPage(403, "<br>Invalid request"), add => totalSent += add, status => statusCode = status, 1048576).ConfigureAwait(false);
                             return;
                         }
 
@@ -112,7 +112,7 @@ namespace Miki1106.WebHandling
                                 if (rangeHeader != null)
                                 {
                                     responseStarted = true;
-                                    await HandleRange(rangeHeader, response, context, add => totalSent += add, status => statusCode = status);
+                                    await HandleRange(rangeHeader, response, context, add => totalSent += add, status => statusCode = status).ConfigureAwait(false);
                                     return;
                                 }
                             }
@@ -133,7 +133,7 @@ namespace Miki1106.WebHandling
                                 context.Response.ContentLength64 = response.Length - response.Position;
                                 responseStarted = true;
                                 statusCode = context.Response.StatusCode;
-                                await CopyStream(response, context.Response.OutputStream, response.Length - response.Position, add => totalSent += add);
+                                await CopyStream(response, context.Response.OutputStream, response.Length - response.Position, add => totalSent += add).ConfigureAwait(false);
                             }
                         }
                         catch (HttpListenerException ex) when (ex.ErrorCode == 64)
@@ -142,7 +142,7 @@ namespace Miki1106.WebHandling
                         catch (Exception ex)
                         {
                             if (!responseStarted)
-                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status, 1048576);
+                                await Send(context, new ErrorPage(500, null, ex), add => totalSent += add, status => statusCode = status, 1048576).ConfigureAwait(false);
                             else
                                 context.Response.Abort();
 
@@ -192,7 +192,7 @@ namespace Miki1106.WebHandling
             context.Response.AddHeader("Content-Range", $"bytes {start}-{end}/{fileLength}");
             context.Response.ContentLength64 = partialLength;
 
-            await CopyStream(response, context.Response.OutputStream, partialLength, add => updateSent?.Invoke(add));
+            await CopyStream(response, context.Response.OutputStream, partialLength, add => updateSent?.Invoke(add)).ConfigureAwait(false);
             response.Close();
         }
     }

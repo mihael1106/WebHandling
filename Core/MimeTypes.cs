@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Miki1106.WebHandling.Core
 {
-    internal static class MimeTypes
+    public static class MimeTypes
     {
         private static Dictionary<string, string> _mimeTypes;
 

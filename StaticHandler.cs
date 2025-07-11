@@ -124,7 +124,7 @@ namespace Miki1106.WebHandling
                             {
                                 Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{requestPath}\" does not exist.");
                                 context.Response.StatusCode = 404;
-                                response = new ErrorPage(404, $"<br>Path \"{requestPath}\" does not exist").GetResponse();
+                                response = new ErrorPage(404, $"<br>Path \"{requestPath}\" does not exist").GetResponse(context);
                             }
                             using (response)
                             {

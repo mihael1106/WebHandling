@@ -11,7 +11,7 @@ namespace Miki1106.WebHandling.Response
             this.data = data;
         }
 
-        public override Stream GetResponse()
+        protected override Stream GetResponse()
         {
             return new MemoryStream(data, false);
         }

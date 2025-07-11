@@ -5,7 +5,7 @@ namespace Miki1106.WebHandling
 {
     public class ListenerResponse
     {
-        public virtual Stream GetResponse()
+        protected virtual Stream GetResponse()
         {
             return null;
         }

@@ -44,10 +44,6 @@ namespace Miki1106.WebHandling
 
                     if (File.Exists(fullPath))
                     {
-                        string mimeType = MimeTypes.GetMimeType(Path.GetExtension(fullPath));
-                        if (WebHandler.debug)
-                            Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found mime type: {mimeType}");
-
                         return new FileResponse(fullPath, false);
                     }
                     else if (Directory.Exists(fullPath))
@@ -57,7 +53,6 @@ namespace Miki1106.WebHandling
                     else
                     {
                         Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
-                        context.Response.StatusCode = 404;
                         return new ErrorPage(404, $"<br>Path \"{path}\" does not exist");
                     }
                 });

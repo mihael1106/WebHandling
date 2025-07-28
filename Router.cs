@@ -15,8 +15,6 @@ namespace Miki1106.WebHandling
 
         public static ListenerResponse FindRoute(string path, HttpListenerContext context)
         {
-            if (path.EndsWith("/"))
-                path = path.Remove(path.Length - 1, 1);
             if (path == "/throw" && WebHandler.debug)
             {
                 throw new Exception("A debug exception has been thrown");
@@ -37,8 +35,12 @@ namespace Miki1106.WebHandling
                     }
                 }
             }
-            
-            if(bestHandler != null)
+
+            if (path.Length > 1)
+                if (path.EndsWith("/"))
+                    path = path.Remove(path.Length - 1, 1);
+
+            if (bestHandler != null)
             {
                 return bestHandler.GetResponse(path, context);
             }

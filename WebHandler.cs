@@ -8,7 +8,7 @@ namespace Miki1106.WebHandling
     {
         public static bool debug = false;
 
-        private readonly Dictionary<string, Func<HttpListenerContext, ListenerResponse>> listeners = new Dictionary<string, Func<HttpListenerContext, ListenerResponse>>();
+        internal static readonly Dictionary<string, Func<HttpListenerContext, ListenerResponse>> listeners = new Dictionary<string, Func<HttpListenerContext, ListenerResponse>>();
         private Func<string, HttpListenerContext, ListenerResponse> fallbackListener = null;
         public readonly string prefix;
 
@@ -34,14 +34,7 @@ namespace Miki1106.WebHandling
 
         internal ListenerResponse GetResponse(string path, HttpListenerContext context)
         {
-            if (listeners.ContainsKey(path))
-            {
-                if (debug)
-                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found listener for \"{path}\"");
-
-                return listeners[path]?.Invoke(context);
-            }
-            else if (fallbackListener != null)
+            if (fallbackListener != null)
             {
                 if (debug)
                     Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found fallback listener for \"{path}\"");

@@ -7,7 +7,7 @@ namespace Miki1106.WebHandling
     public static class Router
     {
         private static List<WebHandler> handlers = new List<WebHandler>();
-        
+
         public static void Register(WebHandler handler)
         {
             handlers.Add(handler);
@@ -18,6 +18,14 @@ namespace Miki1106.WebHandling
             if (path == "/throw" && WebHandler.debug)
             {
                 throw new Exception("A debug exception has been thrown");
+            }
+
+            if (WebHandler.listeners.ContainsKey(path))
+            {
+                if (WebHandler.debug)
+                    Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Found listener for \"{path}\"");
+
+                return WebHandler.listeners[path]?.Invoke(context);
             }
 
             WebHandler bestHandler = null;

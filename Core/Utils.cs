@@ -53,8 +53,8 @@ namespace Miki1106.WebHandling.Core
             using (resultStream)
             {
                 if (resultStream.CanSeek)
-                    resultStream.Seek(0, SeekOrigin.Begin);
-                long size = resultStream.Length - resultStream.Position;
+                    resultStream.Seek(response.startAt, SeekOrigin.Begin);
+                long size = response.sendCount < 0 ? resultStream.Length - resultStream.Position : response.sendCount;
 
                 updateStatusCode?.Invoke(context.Response.StatusCode);
                 context.Response.ContentLength64 = size;

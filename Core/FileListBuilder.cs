@@ -2,52 +2,67 @@
 using System.IO;
 using System;
 using System.Text;
+using System.Net;
 
 namespace Miki1106.WebHandling.Core
 {
-    internal class FileListBuilder
+    public class FileListBuilder : ListenerResponse
     {
         private static readonly string template = Resources.static_base;
-        private string path;
+
+        private string httpPath;
+        private string basePath;
+        private string extraPath;
+        private string fullPath;
+
         private bool showParentDirectory = false;
         private string[] directories = { };
         private string[] files = { };
 
-        public FileListBuilder(string path)
+        public FileListBuilder(string httpPath, string basePath, string extraPath)
         {
-            if (path[path.Length - 1] == '/')
-                path = path.Remove(path.Length - 1);
-            this.path = path;
+            if (basePath.Length > 0)
+                if (basePath[basePath.Length - 1] == '/')
+                    basePath = basePath.Remove(basePath.Length - 1);
+            if (extraPath.StartsWith("/"))
+                extraPath = extraPath.Substring(1);
+
+            this.httpPath = httpPath;
+            this.basePath = basePath;
+            this.extraPath = extraPath;
+            fullPath = Path.Combine(basePath, extraPath);
         }
 
         public byte[] Build()
         {
-            string html = template.Replace("{local_path}", path);
-
-            path += "/";
+            string html = template.Replace("{local_path}", Path.Combine(httpPath, extraPath));
 
             string list = "";
             foreach (string str in directories)
             {
                 DirectoryInfo info = new DirectoryInfo(str);
-                list += GenDir(path, info);
+                list += GenDir(info);
             }
             foreach (string str in files)
             {
                 FileInfo fileInfo = new FileInfo(str);
-                list += GenFile(path, fileInfo);
+                list += GenFile(fileInfo);
             }
             return Encoding.UTF8.GetBytes(html.Replace("{list}", list).Replace("{display}", showParentDirectory ? "block" : "none"));
         }
 
+        public override Stream GetResponse(HttpListenerContext context)
+        {
+            context.Response.ContentType = "text/html";
+            return new MemoryStream(Build());
+        }
+
         public FileListBuilder SetDefault()
         {
-            string noSlash = path.Substring(6);
-            if(noSlash.StartsWith("/"))
-                noSlash = noSlash.Substring(1);
-            directories = Directory.GetDirectories(Path.GetFullPath(Path.Combine(StaticHandler.StaticPath, noSlash)));
-            files = Directory.GetFiles(Path.GetFullPath(Path.Combine(StaticHandler.StaticPath, noSlash)));
-            showParentDirectory = path != "static";
+
+            directories = Directory.GetDirectories(fullPath);
+            files = Directory.GetFiles(fullPath);
+            showParentDirectory = extraPath != "";
             return this;
         }
 
@@ -69,21 +84,21 @@ namespace Miki1106.WebHandling.Core
             return this;
         }
 
-        private static string GenDir(string requestPath, DirectoryInfo info)
+        private string GenDir(DirectoryInfo info)
         {
             string name = info.Name;
             long created = ((DateTimeOffset)info.LastWriteTime).ToUnixTimeSeconds();
-            return Resources.item_folder.Replace("{path}", requestPath + name)
+            return Resources.item_folder.Replace("{path}", Path.Combine(httpPath, extraPath, name))
                 .Replace("{name}", name)
                 .Replace("{created}", created.ToString())
                 .Replace("{created_str}", info.LastWriteTime.ToString("dd/MM/yy, H:mm:ss"));
         }
 
-        private static string GenFile(string requestPath, FileInfo info)
+        private string GenFile(FileInfo info)
         {
             string name = info.Name;
             long created = ((DateTimeOffset)info.LastWriteTime).ToUnixTimeSeconds();
-            string item = Resources.item_file.Replace("{path}", requestPath + name)
+            string item = Resources.item_file.Replace("{path}", Path.Combine(httpPath, extraPath, name))
                 .Replace("{name}", name)
                 .Replace("{created}", created.ToString())
                 .Replace("{created_str}", info.LastWriteTime.ToString("dd/MM/yy, H:mm:ss"))

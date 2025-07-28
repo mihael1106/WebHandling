@@ -60,6 +60,7 @@
     <Compile Include="Form\Mappers\StringMapping.cs" />
     <Compile Include="Form\Mappers\TimeMapping.cs" />
     <Compile Include="Form\Mappers\WeekMapping.cs" />
+    <Compile Include="Listener.cs" />
     <Compile Include="ListenerResponse.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -70,6 +71,7 @@
     <Compile Include="Response\ByteResponse.cs" />
     <Compile Include="Response\FileResponse.cs" />
     <Compile Include="Response\StreamResponse.cs" />
+    <Compile Include="Router.cs" />
     <Compile Include="StaticHandler.cs" />
     <Compile Include="WebHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

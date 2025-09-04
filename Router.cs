@@ -35,6 +35,14 @@ namespace Miki1106.WebHandling
             {
                 if (path.StartsWith("/" + handler.prefix, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (path.Length > handler.prefix.Length + 1)
+                    {
+                        if (path[handler.prefix.Length + 1] != '/')
+                        {
+                            continue;
+                        }
+                    }
+
                     int len = handler.prefix.Length;
                     if (len > bestLength)
                     {

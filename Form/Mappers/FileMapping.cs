@@ -11,11 +11,7 @@ namespace Miki1106.WebHandling.Form
                 string fileName = "file.bin";
                 if (formInfo.Fields[0].TryGetValue("Content-Disposition", out string value))
                 {
-                    string newFilename = FormParser.GetField("filename", value);
-                    if (newFilename != "")
-                    {
-                        fileName = newFilename;
-                    }
+                    fileName = FormParser.GetField("filename", value);
                 }
 
                 byte[] file = new byte[formInfo.DataEnd[0] - formInfo.DataStart[0]];

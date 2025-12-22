@@ -1,8 +1,9 @@
 ﻿using Miki1106.WebHandling.Core;
 using System;
-using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace Miki1106.WebHandling.Response
 {
@@ -32,7 +33,7 @@ namespace Miki1106.WebHandling.Response
                 return null;
 
             string escaped = Uri.EscapeDataString(Path.GetFileName(filename));
-            string contentDisposition = $"{(download ? "attachment" : "inline")}; filename=\"{Path.GetFileName(filename)}\"; filename*=UTF-8''{escaped}";
+            string contentDisposition = $"{(download ? "attachment" : "inline")}; filename=\"{ToAsciiFilename(Path.GetFileName(filename))}\"; filename*=UTF-8''{escaped}";
             context.Response.ContentType = MimeTypes.GetMimeType(Path.GetExtension(filename));
             context.Response.Headers["Content-Disposition"] = contentDisposition;
 
@@ -51,6 +52,25 @@ namespace Miki1106.WebHandling.Response
             }
             bufferSize = 1048576;
             return stream;
+        }
+
+        static string ToAsciiFilename(string input)
+        {
+            string normalized = input.Normalize(NormalizationForm.FormD);
+            StringBuilder sb = new StringBuilder(normalized.Length);
+
+            foreach (char c in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark)
+                    continue;
+
+                if (c >= 0x20 && c <= 0x7E && c != '"')
+                    sb.Append(c);
+                else
+                    sb.Append('_');
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }

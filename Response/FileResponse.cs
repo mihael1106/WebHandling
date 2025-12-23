@@ -36,6 +36,26 @@ namespace Miki1106.WebHandling.Response
             string contentDisposition = $"{(download ? "attachment" : "inline")}; filename=\"{ToAsciiFilename(Path.GetFileName(filename))}\"; filename*=UTF-8''{escaped}";
             context.Response.ContentType = MimeTypes.GetMimeType(Path.GetExtension(filename));
             context.Response.Headers["Content-Disposition"] = contentDisposition;
+            context.Response.Headers["ETag"] = $"\"{new FileInfo(filename).LastWriteTime.Ticks}-{stream.Length}\"";
+
+            string etag = context.Request.Headers["If-None-Match"];
+            if (etag != null)
+            {
+                if (etag == $"\"{new FileInfo(filename).LastWriteTime.Ticks}-{stream.Length}\"")
+                {
+                    context.Response.StatusCode = 304;
+                    return new MemoryStream();
+                }
+            }
+            bufferSize = 1048576;
+            etag = context.Request.Headers["If-Range"];
+            if(etag != null)
+            {
+                if (etag == $"\"{new FileInfo(filename).LastWriteTime.Ticks}-{stream.Length}\"")
+                {
+                    return stream;
+                }
+            }
 
             string rangeHeader = context.Request.Headers["Range"];
             if (rangeHeader != null)
@@ -50,7 +70,6 @@ namespace Miki1106.WebHandling.Response
                 context.Response.StatusCode = 206;
                 context.Response.Headers["Content-Range"] = $"bytes {startAt}-{end}/{fileLength}";
             }
-            bufferSize = 1048576;
             return stream;
         }
 

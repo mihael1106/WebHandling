@@ -3,6 +3,7 @@ using System.IO;
 using System;
 using System.Text;
 using System.Net;
+using System.Linq;
 
 namespace Miki1106.WebHandling.Core
 {
@@ -60,8 +61,8 @@ namespace Miki1106.WebHandling.Core
         public FileListBuilder SetDefault()
         {
 
-            directories = Directory.GetDirectories(fullPath);
-            files = Directory.GetFiles(fullPath);
+            directories = Directory.GetDirectories(fullPath).OrderBy(d => d, StringComparer.OrdinalIgnoreCase).ToArray();
+            files = Directory.GetFiles(fullPath).OrderBy(d => d, StringComparer.OrdinalIgnoreCase).ToArray();
             showParentDirectory = extraPath != "";
             return this;
         }

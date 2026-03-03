@@ -150,6 +150,9 @@ namespace Miki1106.WebHandling
 
         public static void Join()
         {
+            if (listenerThreads == null)
+                return;
+
             for (int i = 0; i < _listenerThreads; i++)
             {
                 listenerThreads[i].Join();

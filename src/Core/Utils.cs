@@ -58,7 +58,7 @@ namespace Miki1106.WebHandling.Core
 
                 updateStatusCode?.Invoke(context.Response.StatusCode);
                 context.Response.ContentLength64 = size;
-                await CopyStream(resultStream, context.Response.OutputStream, size, add => updateSent?.Invoke(add), bufferSize).ConfigureAwait(false);
+                await CopyStream(resultStream, context.Response.OutputStream, size, updateSent, bufferSize).ConfigureAwait(false);
             }
         }
     }

@@ -146,6 +146,8 @@ namespace Miki1106.WebHandling
                         Console.WriteLine(ex.Message);
                 }
             }
+            if (WebHandler.debug)
+                Console.WriteLine(Thread.CurrentThread.Name + " finished execution");
         }
 
         public static void Join()

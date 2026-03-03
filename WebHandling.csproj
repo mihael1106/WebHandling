@@ -41,46 +41,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\ErrorPageBuilder.cs" />
-    <Compile Include="Core\FileListBuilder.cs" />
-    <Compile Include="Core\MimeTypes.cs" />
-    <Compile Include="Core\Utils.cs" />
-    <Compile Include="ErrorPage.cs" />
-    <Compile Include="Form\Mappers\CheckMapping.cs" />
-    <Compile Include="Form\Mappers\FileMapping.cs" />
-    <Compile Include="Form\Mappers\FilesMapping.cs" />
-    <Compile Include="Form\FormCheck.cs" />
-    <Compile Include="Form\FormField.cs" />
-    <Compile Include="Form\FormFileInfo.cs" />
-    <Compile Include="Form\IFormMapper.cs" />
-    <Compile Include="Form\FormParser.cs" />
-    <Compile Include="Form\Mappers\IntMapping.cs" />
-    <Compile Include="Form\Mappers\LongMapping.cs" />
-    <Compile Include="Form\ParserInfo.cs" />
-    <Compile Include="Form\Mappers\StringMapping.cs" />
-    <Compile Include="Form\Mappers\TimeMapping.cs" />
-    <Compile Include="Form\Mappers\WeekMapping.cs" />
-    <Compile Include="Listener.cs" />
-    <Compile Include="ListenerResponse.cs" />
+    <Compile Include="src\Core\ErrorPageBuilder.cs" />
+    <Compile Include="src\Core\FileListBuilder.cs" />
+    <Compile Include="src\Core\MimeTypes.cs" />
+    <Compile Include="src\Core\Utils.cs" />
+    <Compile Include="src\Core\ErrorPage.cs" />
+    <Compile Include="src\Form\Mappers\CheckMapping.cs" />
+    <Compile Include="src\Form\Mappers\FileMapping.cs" />
+    <Compile Include="src\Form\Mappers\FilesMapping.cs" />
+    <Compile Include="src\Form\Mappers\FormCheck.cs" />
+    <Compile Include="src\Form\FormField.cs" />
+    <Compile Include="src\Form\FormFileInfo.cs" />
+    <Compile Include="src\Form\IFormMapper.cs" />
+    <Compile Include="src\Form\FormParser.cs" />
+    <Compile Include="src\Form\Mappers\IntMapping.cs" />
+    <Compile Include="src\Form\Mappers\LongMapping.cs" />
+    <Compile Include="src\Form\ParserInfo.cs" />
+    <Compile Include="src\Form\Mappers\StringMapping.cs" />
+    <Compile Include="src\Form\Mappers\TimeMapping.cs" />
+    <Compile Include="src\Form\Mappers\WeekMapping.cs" />
+    <Compile Include="src\Listener.cs" />
+    <Compile Include="src\Response\ListenerResponse.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Core\RequestInfo.cs" />
-    <Compile Include="Response\ByteResponse.cs" />
-    <Compile Include="Response\FileResponse.cs" />
-    <Compile Include="Response\StreamResponse.cs" />
-    <Compile Include="Router.cs" />
-    <Compile Include="StaticHandler.cs" />
-    <Compile Include="WebHandler.cs" />
+    <Compile Include="src\Core\RequestInfo.cs" />
+    <Compile Include="src\Response\ByteResponse.cs" />
+    <Compile Include="src\Response\FileResponse.cs" />
+    <Compile Include="src\Response\StreamResponse.cs" />
+    <Compile Include="src\Router.cs" />
+    <Compile Include="src\StaticHandler.cs" />
+    <Compile Include="src\WebHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="error_base.html" />
-    <Content Include="item_file.txt" />
-    <Content Include="item_folder.txt" />
-    <Content Include="static_base.html" />
+    <Content Include="src\Resources\error_base.html" />
+    <Content Include="src\Resources\item_file.txt" />
+    <Content Include="src\Resources\item_folder.txt" />
+    <Content Include="src\Resources\static_base.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -89,7 +89,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="mime.types.txt" />
+    <Content Include="src\Resources\mime.types.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -25,7 +25,7 @@ namespace Miki1106.WebHandling
         }
         private static WebHandler handler;
 
-        internal static void StaticWeb()
+        public static void StaticWeb()
         {
             if (handler == null)
             {

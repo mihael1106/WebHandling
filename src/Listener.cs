@@ -67,7 +67,6 @@ namespace Miki1106.WebHandling
         {
             if (running) return;
 
-            StaticHandler.StaticWeb();
             listenerThreads = new Thread[_listenerThreads];
             for (int i = 0; i < _listenerThreads; i++)
             {

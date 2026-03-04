@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace Miki1106.WebHandling.Core
 {
-    public static class Utils
+    internal static class Utils
     {
-
         public static async Task CopyStream(Stream source, Stream target, long bytesToCopy, Action<long> updateSent, int bufferSize = 1048576)
         {
             byte[] buffer = new byte[bufferSize];

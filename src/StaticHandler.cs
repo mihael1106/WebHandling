@@ -52,7 +52,8 @@ namespace Miki1106.WebHandling
                     }
                     else
                     {
-                        Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
+                        if(WebHandler.debug)
+                            Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
                         return new ErrorPage(404, $"<br>Path \"{path}\" does not exist");
                     }
                 });

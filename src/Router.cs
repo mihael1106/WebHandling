@@ -4,7 +4,7 @@ using System.Net;
 
 namespace Miki1106.WebHandling
 {
-    public static class Router
+    internal static class Router
     {
         private static List<WebHandler> handlers = new List<WebHandler>();
 

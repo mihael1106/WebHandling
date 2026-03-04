@@ -9,7 +9,6 @@ namespace Miki1106.WebHandling
 {
     public static class Listener
     {
-
         private static bool running = false;
 
         private static int _listenerThreads = 4;
@@ -65,7 +64,12 @@ namespace Miki1106.WebHandling
 
         public static void Start()
         {
-            if (running) return;
+            if (running)
+            {
+                if (WebHandler.debug)
+                    Console.WriteLine("Tried to start the Listener while already running");
+                return;
+            }
 
             listenerThreads = new Thread[_listenerThreads];
             for (int i = 0; i < _listenerThreads; i++)
@@ -78,6 +82,9 @@ namespace Miki1106.WebHandling
                 listenerThreads[i].Start();
             }
             running = true;
+
+            if (WebHandler.debug)
+                Console.WriteLine("Started Listener");
         }
 
         private static void Web()

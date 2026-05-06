@@ -1,11 +1,9 @@
-﻿using Miki1106.WebHandling.Core;
-using Miki1106.WebHandling.Response;
-using System;
+﻿using System;
 using System.IO;
 
-namespace Miki1106.WebHandling
+namespace Miki1106.WebHandling.Static
 {
-    public static class StaticHandler
+    public static class StaticWebHandler
     {
         private static string _staticPath = "static";
         public static string StaticPath
@@ -23,6 +21,13 @@ namespace Miki1106.WebHandling
                 _staticPath = value;
             }
         }
+        private static StaticHandler _staticHandler = new StaticHandler();
+
+        public static void SetHandler(StaticHandler staticHandler)
+        {
+            _staticHandler = staticHandler ?? throw new ArgumentNullException(nameof(staticHandler));
+        }
+
         private static WebHandler handler;
 
         public static void StaticWeb()
@@ -39,22 +44,22 @@ namespace Miki1106.WebHandling
 
                     if (!fullPath.StartsWith(Path.GetFullPath(StaticPath), StringComparison.OrdinalIgnoreCase))
                     {
-                        return new ErrorPage(403, "<br>Invalid request");
+                        return _staticHandler.OnForbidden(path, context);
                     }
 
                     if (File.Exists(fullPath))
                     {
-                        return new FileResponse(fullPath, false);
+                        return _staticHandler.OnFile(fullPath, context);
                     }
                     else if (Directory.Exists(fullPath))
                     {
-                        return new FileListBuilder("static", StaticPath, path).SetDefault();
+                        return _staticHandler.OnDirectory(path, context);
                     }
                     else
                     {
                         if(WebHandler.debug)
                             Console.WriteLine($"[{context.Request.RemoteEndPoint.Address}] Path \"{path}\" does not exist.");
-                        return new ErrorPage(404, $"<br>Path \"{path}\" does not exist");
+                        return _staticHandler.OnNotFound(path, context);
                     }
                 });
             }

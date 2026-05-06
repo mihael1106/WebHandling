@@ -72,7 +72,8 @@
     <Compile Include="src\Response\FileResponse.cs" />
     <Compile Include="src\Response\StreamResponse.cs" />
     <Compile Include="src\Router.cs" />
-    <Compile Include="src\StaticHandler.cs" />
+    <Compile Include="src\Static\StaticWebHandler.cs" />
+    <Compile Include="src\Static\StaticHandler.cs" />
     <Compile Include="src\WebHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

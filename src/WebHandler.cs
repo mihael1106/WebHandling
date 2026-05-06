@@ -18,8 +18,6 @@ namespace Miki1106.WebHandling
             Router.Register(this);
         }
 
-
-
         internal string GetPath(string path)
         {
             if (path.Length != 0)

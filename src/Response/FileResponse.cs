@@ -34,7 +34,12 @@ namespace Miki1106.WebHandling.Response
 
             string escaped = Uri.EscapeDataString(Path.GetFileName(filename));
             string contentDisposition = $"{(download ? "attachment" : "inline")}; filename=\"{ToAsciiFilename(Path.GetFileName(filename))}\"; filename*=UTF-8''{escaped}";
-            context.Response.ContentType = MimeTypes.GetMimeType(Path.GetExtension(filename));
+            string mime = MimeTypes.GetMimeType(Path.GetExtension(filename));
+            if (mime.StartsWith("text/") || mime == "application/json" || mime == "application/xml" || mime == "application/javascript")
+            {
+                mime += "; charset=utf-8";
+            }
+            context.Response.ContentType = mime;
             context.Response.Headers["Content-Disposition"] = contentDisposition;
             context.Response.Headers["ETag"] = $"\"{new FileInfo(filename).LastWriteTime.Ticks}-{stream.Length}\"";
 
@@ -49,7 +54,7 @@ namespace Miki1106.WebHandling.Response
             }
             bufferSize = 1048576;
             etag = context.Request.Headers["If-Range"];
-            if(etag != null)
+            if (etag != null)
             {
                 if (etag == $"\"{new FileInfo(filename).LastWriteTime.Ticks}-{stream.Length}\"")
                 {
